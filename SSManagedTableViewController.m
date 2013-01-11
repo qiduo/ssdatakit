@@ -44,7 +44,7 @@
 	[super viewWillAppear:animated];
 	
 	// TODO: Only reload if data is empty
-	[self.tableView reloadData];
+	//[self.tableView reloadData];
 	
 	if (_clearsSelectionOnViewWillAppear) {
 		[self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:animated];
