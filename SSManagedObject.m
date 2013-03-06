@@ -103,8 +103,8 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 		NSDictionary *applicationInfo = [[NSBundle mainBundle] infoDictionary];
 #if TARGET_OS_IPHONE
 		NSString *applicationName = [applicationInfo objectForKey:@"CFBundleDisplayName"];
-		NSURL *documentsURL = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
-		NSURL *url = [documentsURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.sqlite", applicationName]];
+		NSURL *applicationSupportURL = [[[NSFileManager defaultManager] URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask] lastObject];
+		NSURL *url = [applicationSupportURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.sqlite", applicationName]];
 #else
 		NSString *applicationName = [applicationInfo objectForKey:@"CFBundleName"];
 		NSFileManager *fileManager = [NSFileManager defaultManager];
