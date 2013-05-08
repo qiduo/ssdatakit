@@ -50,7 +50,15 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 + (NSManagedObjectContext *)mainQueueContext {
 	if (!__mainQueueContext) {
 		__mainQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
-		[__mainQueueContext setParentContext:[self privateQueueContext]];
+        
+        // Use nested MOC in iOS 6.0+
+        // http://stackoverflow.com/questions/11786436/core-data-nested-managed-object-contexts-and-frequent-deadlocks-freezes
+        // http://wbyoung.tumblr.com/post/27851725562/core-data-growing-pains
+        if ([[[UIDevice currentDevice] systemVersion] compare:@"6.0" options:NSNumericSearch] != NSOrderedAscending) {
+            [__mainQueueContext setParentContext:[self privateQueueContext]];
+        } else {
+            [__mainQueueContext setPersistentStoreCoordinator:[self persistentStoreCoordinator]];
+        }
 	}
 	return __mainQueueContext;
 }
