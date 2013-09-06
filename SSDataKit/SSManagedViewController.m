@@ -122,6 +122,15 @@
 	return [self.fetchedResultsController objectAtIndexPath:[self fetchedIndexPathForViewIndexPath:indexPath]];
 }
 
+- (NSUInteger)viewSectionIndexForFetchedSectionIndex:(NSUInteger)fetchedSectionIndex {
+    return fetchedSectionIndex;
+}
+
+
+- (NSUInteger)fetchedSectionIndexForViewSectionIndex:(NSUInteger)viewSectionIndex {
+    return viewSectionIndex;
+}
+
 
 #pragma mark - Placeholders
 

@@ -143,15 +143,17 @@
 		return;
 	}
 
+    NSUInteger viewSectionIndex = [self viewSectionIndexForFetchedSectionIndex:sectionIndex];
+    
     switch(type) {
         case NSFetchedResultsChangeInsert: {
-            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:sectionIndex]
+            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:viewSectionIndex]
 						  withRowAnimation:UITableViewRowAnimationFade];
             break;
 		}
 
         case NSFetchedResultsChangeDelete: {
-            [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:sectionIndex]
+            [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:viewSectionIndex]
 						  withRowAnimation:UITableViewRowAnimationFade];
             break;
 		}

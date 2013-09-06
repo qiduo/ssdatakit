@@ -33,6 +33,8 @@
 - (NSIndexPath *)viewIndexPathForFetchedIndexPath:(NSIndexPath *)fetchedIndexPath;
 - (NSIndexPath *)fetchedIndexPathForViewIndexPath:(NSIndexPath *)viewIndexPath;
 - (id)objectForViewIndexPath:(NSIndexPath *)indexPath;
+- (NSUInteger)viewSectionIndexForFetchedSectionIndex:(NSUInteger)fetchedSectionIndex;
+- (NSUInteger)fetchedSectionIndexForViewSectionIndex:(NSUInteger)viewSectionIndex;
 
 - (void)setLoading:(BOOL)loading animated:(BOOL)animated;
 - (BOOL)hasContent;
