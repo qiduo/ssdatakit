@@ -3,11 +3,13 @@
 //  SSDataKit
 //
 //  Created by Sam Soffes on 10/23/11.
-//  Copyright (c) 2011-2013 Sam Soffes. All rights reserved.
+//  Copyright (c) 2011-2014 Sam Soffes. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+
+extern NSString *const kSSManagedObjectWillResetNotificationName;
 
 @interface SSManagedObject : NSManagedObject <NSCoding>
 
@@ -51,6 +53,8 @@ Changes saved here are automatically reflected in the `privateQueueContext`.
 + (void)setManagedObjectModel:(NSManagedObjectModel *)model;
 + (NSURL *)persistentStoreURL;
 + (void)setPersistentStoreURL:(NSURL *)url;
++ (NSString *)persistentStoreType;
++ (void)setPersistentStoreType:(NSString *)persistentStoreType;
 
 
 #pragma mark - Resetting the Presistent Store

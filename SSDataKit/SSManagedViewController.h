@@ -3,7 +3,7 @@
 //  SSDataKit
 //
 //  Created by Sam Soffes on 4/7/12.
-//  Copyright (c) 2012-2013 Sam Soffes. All rights reserved.
+//  Copyright (c) 2012-2014 Sam Soffes. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -30,6 +30,9 @@
 - (NSString *)sectionNameKeyPath;
 - (NSString *)cacheName;
 
+- (void)willCreateFetchedResultsController;
+- (void)didCreateFetchedResultsController;
+
 - (NSIndexPath *)viewIndexPathForFetchedIndexPath:(NSIndexPath *)fetchedIndexPath;
 - (NSIndexPath *)fetchedIndexPathForViewIndexPath:(NSIndexPath *)viewIndexPath;
 - (id)objectForViewIndexPath:(NSIndexPath *)indexPath;
@@ -39,6 +42,7 @@
 - (void)setLoading:(BOOL)loading animated:(BOOL)animated;
 - (BOOL)hasContent;
 - (void)updatePlaceholderViews:(BOOL)animated;
+- (CGRect)placeholderViewsFrame;
 - (void)showLoadingView:(BOOL)animated;
 - (void)hideLoadingView:(BOOL)animated;
 - (void)showNoContentView:(BOOL)animated;

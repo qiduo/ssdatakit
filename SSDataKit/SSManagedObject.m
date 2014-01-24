@@ -3,16 +3,19 @@
 //  SSDataKit
 //
 //  Created by Sam Soffes on 10/23/11.
-//  Copyright (c) 2011-2013 Sam Soffes. All rights reserved.
+//  Copyright (c) 2011-2014 Sam Soffes. All rights reserved.
 //
 
 #import "SSManagedObject.h"
+
+NSString *const kSSManagedObjectWillResetNotificationName = @"SSManagedObjectWillResetNotification";
 
 static id __contextSaveObserver = nil;
 static NSManagedObjectContext *__privateQueueContext = nil;
 static NSManagedObjectContext *__mainQueueContext = nil;
 static NSManagedObjectModel *__managedObjectModel = nil;
 static NSURL *__persistentStoreURL = nil;
+static NSString *__persistentStoreType = nil;
 static NSDictionary *__persistentStoreOptions = nil;
 static BOOL __automaticallyResetsPersistentStore = NO;
 static NSString *const kURIRepresentationKey = @"URIRepresentation";
@@ -65,14 +68,20 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 }
 
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 + (NSManagedObjectContext *)mainContext {
 	return [self mainQueueContext];
 }
+#pragma clang diagnostic pop
 
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 + (BOOL)hasMainContext {
 	return [self hasMainQueueContext];
 }
+#pragma clang diagnostic pop
 
 
 + (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
@@ -85,13 +94,14 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 		NSURL *url = [self persistentStoreURL];
 		NSError *error = nil;
 		NSDictionary *storeOptions = [self persistentStoreOptions];
-		[persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:storeOptions error:&error];
+		[persistentStoreCoordinator addPersistentStoreWithType:[self persistentStoreType] configuration:nil URL:url options:storeOptions error:&error];
 
 		if (error) {
 			// Reset the persistent store
-			if (__automaticallyResetsPersistentStore && error.code == 134130) {
+			BOOL missingError = error.code == NSMigrationMissingSourceModelError || error.code == NSMigrationMissingMappingModelError;
+			if (__automaticallyResetsPersistentStore && missingError) {
 				[[NSFileManager defaultManager] removeItemAtURL:url error:nil];
-				[persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:storeOptions error:&error];
+				[persistentStoreCoordinator addPersistentStoreWithType:[self persistentStoreType] configuration:nil URL:url options:storeOptions error:&error];
 			} else {
 				NSLog(@"[SSDataKit] Failed to add persistent store: %@ %@", error, error.userInfo);
 			}
@@ -171,22 +181,38 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 }
 
 
++ (NSString *)persistentStoreType {
+	return __persistentStoreType ? __persistentStoreType : NSSQLiteStoreType;
+}
+
+
++ (void)setPersistentStoreType:(NSString *)persistentStoreType {
+	__persistentStoreType = persistentStoreType;
+}
+
+
 #pragma mark - Resetting the Presistent Store
 
 + (void)resetPersistentStore {
+	// Post will reset notification
+	[[NSNotificationCenter defaultCenter] postNotificationName:kSSManagedObjectWillResetNotificationName object:nil userInfo:nil];
 
-	// unwind old contexts
+	// Destroy old contexts
 	[[NSNotificationCenter defaultCenter] removeObserver:__contextSaveObserver];
 	[__mainQueueContext reset];
 	__mainQueueContext = nil;
+
 	[__privateQueueContext reset];
 	__privateQueueContext = nil;
-	
+
+	// Delete old persistent store
 	NSURL *url = [self persistentStoreURL];
 	NSPersistentStoreCoordinator *psc = [SSManagedObject persistentStoreCoordinator];
 	if ([psc removePersistentStore:psc.persistentStores.lastObject error:nil]) {
 		[[NSFileManager defaultManager] removeItemAtURL:url error:nil];
-		[psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:[SSManagedObject persistentStoreOptions] error:nil];
+
+		// Make a new one
+		[psc addPersistentStoreWithType:[self persistentStoreType] configuration:nil URL:url options:[SSManagedObject persistentStoreOptions] error:nil];
 	}
 }
 

@@ -3,7 +3,7 @@
 //  SSDataKit
 //
 //  Created by Sam Soffes on 4/7/12.
-//  Copyright (c) 2012-2013 Sam Soffes. All rights reserved.
+//  Copyright (c) 2012-2014 Sam Soffes. All rights reserved.
 //
 
 #import "SSManagedTableViewController.h"
@@ -42,10 +42,6 @@
 
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
-
-	// TODO: Only reload if data is empty
-	[self.tableView reloadData];
-
 	if (_clearsSelectionOnViewWillAppear) {
 		[self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:animated];
 	}
@@ -61,6 +57,13 @@
 - (void)setEditing:(BOOL)editing animated:(BOOL)animated {
 	[super setEditing:editing animated:animated];
 	[self.tableView setEditing:editing animated:animated];
+}
+
+
+#pragma mark - SSManagedViewController
+
+- (void)didCreateFetchedResultsController {
+	[self.tableView reloadData];
 }
 
 
@@ -147,6 +150,10 @@
 	if (self.ignoreChange || ![self useChangeAnimations]) {
 		return;
 	}
+	
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:NSNotFound inSection:sectionIndex];
+    indexPath = [self viewIndexPathForFetchedIndexPath:indexPath];
+    sectionIndex = indexPath.section;
 
     NSUInteger viewSectionIndex = [self viewSectionIndexForFetchedSectionIndex:sectionIndex];
     

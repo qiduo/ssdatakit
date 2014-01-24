@@ -3,7 +3,7 @@
 //  SSDataKit
 //
 //  Created by Sam Soffes on 4/7/12.
-//  Copyright (c) 2012-2013 Sam Soffes. All rights reserved.
+//  Copyright (c) 2012-2014 Sam Soffes. All rights reserved.
 //
 
 #import "SSRemoteManagedObject.h"
@@ -22,6 +22,19 @@
 
 
 + (id)objectWithRemoteID:(NSNumber *)remoteID context:(NSManagedObjectContext *)context {
+
+	// If there isn't a suitable remoteID, we won't find the object. Return nil.
+	if (!remoteID ||
+		![remoteID respondsToSelector:@selector(integerValue)] ||
+		[remoteID integerValue] == 0) {
+		return nil;
+	}
+
+	// Default to the main context
+	if (!context) {
+		context = [self mainQueueContext];
+	}
+
 	// Look up the object
 	SSRemoteManagedObject *object = [self existingObjectWithRemoteID:remoteID context:context];
 
@@ -42,6 +55,14 @@
 
 
 + (id)existingObjectWithRemoteID:(NSNumber *)remoteID context:(NSManagedObjectContext *)context {
+
+	// If there isn't a suitable remoteID, we won't find the object. Return nil.
+	if (!remoteID ||
+		![remoteID respondsToSelector:@selector(integerValue)] ||
+		[remoteID integerValue] == 0) {
+		return nil;
+	}
+
 	// Default to the main context
 	if (!context) {
 		context = [self mainQueueContext];
@@ -56,13 +77,8 @@
 	// Execute the fetch request
 	NSArray *results = [context executeFetchRequest:fetchRequest error:nil];
 
-	// If the object is not found, return nil
-	if (results.count == 0) {
-		return nil;
-	}
-
 	// Return the object
-	return [results objectAtIndex:0];
+	return [results lastObject];
 }
 
 
@@ -72,25 +88,16 @@
 
 
 + (id)objectWithDictionary:(NSDictionary *)dictionary context:(NSManagedObjectContext *)context {
-	// If there isn't a dictionary, we won't find the object. Return nil.
-	if (!dictionary || [dictionary isEqual:[NSNull null]]) {
+
+	// Make sure we have a dictionary
+	if (![dictionary isKindOfClass:[NSDictionary class]]) {
 		return nil;
 	}
 
 	// Extract the remoteID from the dictionary
-	NSNumber *remoteID = dictionary[@"id"];
+	NSNumber *remoteID = @([[dictionary objectForKey:@"id"] integerValue]);
 
-	// If there isn't a remoteID, we won't find the object. Return nil.
-	if (!remoteID || remoteID.integerValue == 0) {
-		return nil;
-	}
-
-	// Default to the main context
-	if (!context) {
-		context = [self mainQueueContext];
-	}
-
-	// Find or create the object
+	// Find object by remoteID
 	SSRemoteManagedObject *object = [[self class] objectWithRemoteID:remoteID context:context];
 
 	// Only unpack if necessary
@@ -109,29 +116,17 @@
 
 
 + (id)existingObjectWithDictionary:(NSDictionary *)dictionary context:(NSManagedObjectContext *)context {
-	// If there isn't a dictionary, we won't find the object. Return nil.
-	if (!dictionary) {
+
+	// Make sure we have a dictionary
+	if (![dictionary isKindOfClass:[NSDictionary class]]) {
 		return nil;
 	}
 
 	// Extract the remoteID from the dictionary
-	NSNumber *remoteID = dictionary[@"id"];
+	NSNumber *remoteID = @([[dictionary objectForKey:@"id"] integerValue]);
 
-	// If there isn't a remoteID, we won't find the object. Return nil.
-	if (!remoteID || remoteID.integerValue == 0) {
-		return nil;
-	}
-
-	// Default to the main context
-	if (!context) {
-		context = [self mainQueueContext];
-	}
-
-	// Lookup the object
+	// Find object by remoteID
 	SSRemoteManagedObject *object = [[self class] existingObjectWithRemoteID:remoteID context:context];
-	if (!object) {
-		return nil;
-	}
 
 	// Only unpack if necessary
 	if ([object shouldUnpackDictionary:dictionary]) {
@@ -145,7 +140,7 @@
 
 - (void)unpackDictionary:(NSDictionary *)dictionary {
 	if (!self.isRemote) {
-		self.remoteID = dictionary[@"id"];
+		self.remoteID = @([[dictionary objectForKey:@"id"] integerValue]);
 	}
 
 	if ([self respondsToSelector:@selector(setCreatedAt:)]) {
@@ -159,11 +154,9 @@
 
 
 - (BOOL)shouldUnpackDictionary:(NSDictionary *)dictionary {
-	if (![self respondsToSelector:@selector(updatedAt)]) {
+	if (![self respondsToSelector:@selector(updatedAt)] || !self.updatedAt) {
 		return YES;
 	}
-
-	if (self.updatedAt == nil) { return YES; }
 
 	NSDate *newDate = [[self class] parseDate:dictionary[@"updated_at"]];
 	if (newDate && [self.updatedAt compare:newDate] == NSOrderedAscending) {
@@ -213,8 +206,15 @@
 			strncpy(newStr + len - 1, "+0000", 5);
 		}
 
+		//Milliseconds parsing
+		else if (len == 24 && str[len - 1] == 'Z') {
+			strncpy(newStr, str, len - 1);
+			strncpy(newStr, str, len - 5);
+			strncpy(newStr + len - 5, "+0000", 5);
+		}
+
 		// Timezone
-		else if (len == 24 && str[22] == ':') {
+		else if (len == 25 && str[22] == ':') {
 			strncpy(newStr, str, 22);
 			strncpy(newStr + 22, str + 23, 2);
 		}

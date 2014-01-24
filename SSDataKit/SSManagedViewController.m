@@ -3,7 +3,7 @@
 //  SSDataKit
 //
 //  Created by Sam Soffes on 4/7/12.
-//  Copyright (c) 2012-2013 Sam Soffes. All rights reserved.
+//  Copyright (c) 2012-2014 Sam Soffes. All rights reserved.
 //
 
 #import "SSManagedViewController.h"
@@ -22,13 +22,15 @@
 #pragma mark - Accessors
 
 - (NSFetchedResultsController *)fetchedResultsController {
-	if (!_fetchedResultsController) {
+	if (!_fetchedResultsController && [SSManagedObject hasMainQueueContext]) {
+		[self willCreateFetchedResultsController];
 		_fetchedResultsController = [[[[self class] fetchedResultsControllerClass] alloc] initWithFetchRequest:self.fetchRequest
 																		managedObjectContext:self.managedObjectContext
 																		  sectionNameKeyPath:self.sectionNameKeyPath
 																				   cacheName:self.cacheName];
 		_fetchedResultsController.delegate = self;
 		[_fetchedResultsController performFetch:nil];
+		[self didCreateFetchedResultsController];
 	}
 	return _fetchedResultsController;
 }
@@ -48,11 +50,18 @@
 #pragma mark - NSObject
 
 - (void)dealloc {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	self.fetchedResultsController = nil;
 }
 
 
 #pragma mark - UIViewController
+
+- (void)viewDidLoad {
+	[super viewDidLoad];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managedObjectContextWillReset:) name:kSSManagedObjectWillResetNotificationName object:nil];
+}
+
 
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
@@ -132,6 +141,18 @@
 }
 
 
+#pragma mark - Callbacks
+
+- (void)willCreateFetchedResultsController {
+	// Subclasses may override this method
+}
+
+
+- (void)didCreateFetchedResultsController {
+	// Subclasses may override this method
+}
+
+
 #pragma mark - Placeholders
 
 - (void)setLoading:(BOOL)loading animated:(BOOL)animated {
@@ -142,6 +163,11 @@
 
 - (BOOL)hasContent {
 	return self.fetchedResultsController.fetchedObjects.count > 0;
+}
+
+
+- (CGRect)placeholderViewsFrame {
+	return self.view.bounds;
 }
 
 
@@ -176,7 +202,7 @@
 	}
 
 	self.loadingView.alpha = 0.0f;
-	self.loadingView.frame = self.view.bounds;
+	self.loadingView.frame = [self placeholderViewsFrame];
 	[self.view addSubview:self.loadingView];
 
 	void (^change)(void) = ^{
@@ -220,7 +246,7 @@
 	}
 
 	self.noContentView.alpha = 0.0f;
-	self.noContentView.frame = self.view.bounds;
+	self.noContentView.frame = [self placeholderViewsFrame];
 	[self.view addSubview:self.noContentView];
 
 	void (^change)(void) = ^{
@@ -255,6 +281,13 @@
 		change();
 		completion(YES);
 	}
+}
+
+
+#pragma mark - Private
+
+- (void)managedObjectContextWillReset:(NSNotification *)notification {
+	self.fetchedResultsController = nil;
 }
 
 
