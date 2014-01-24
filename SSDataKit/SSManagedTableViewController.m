@@ -151,21 +151,19 @@
 		return;
 	}
 	
-    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:NSNotFound inSection:sectionIndex];
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:NSNotFound inSection:sectionIndex];
     indexPath = [self viewIndexPathForFetchedIndexPath:indexPath];
     sectionIndex = indexPath.section;
-
-    NSUInteger viewSectionIndex = [self viewSectionIndexForFetchedSectionIndex:sectionIndex];
     
     switch(type) {
         case NSFetchedResultsChangeInsert: {
-            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:viewSectionIndex]
+            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:sectionIndex]
 						  withRowAnimation:UITableViewRowAnimationFade];
             break;
 		}
 
         case NSFetchedResultsChangeDelete: {
-            [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:viewSectionIndex]
+            [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:sectionIndex]
 						  withRowAnimation:UITableViewRowAnimationFade];
             break;
 		}
