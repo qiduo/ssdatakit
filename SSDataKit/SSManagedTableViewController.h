@@ -10,11 +10,10 @@
 
 @interface SSManagedTableViewController : SSManagedViewController <UITableViewDataSource, UITableViewDelegate>
 
-@property (nonatomic, strong, readonly) UITableView *tableView;
+@property (nonatomic, readonly) UITableView *tableView;
 @property (nonatomic) BOOL clearsSelectionOnViewWillAppear;
 
-- (id)initWithStyle:(UITableViewStyle)style;
+- (instancetype)initWithStyle:(UITableViewStyle)style;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
-- (BOOL)useChangeAnimations;
 
 @end

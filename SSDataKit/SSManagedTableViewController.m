@@ -10,15 +10,9 @@
 
 @implementation SSManagedTableViewController
 
-#pragma mark - Accessors
-
-@synthesize tableView = _tableView;
-@synthesize clearsSelectionOnViewWillAppear = _clearsSelectionOnViewWillAppear;
-
-
 #pragma mark - NSObject
 
-- (id)init {
+- (instancetype)init {
 	return (self = [self initWithStyle:UITableViewStylePlain]);
 }
 
@@ -69,7 +63,7 @@
 
 #pragma mark - Initializer
 
-- (id)initWithStyle:(UITableViewStyle)style {
+- (instancetype)initWithStyle:(UITableViewStyle)style {
 	if ((self = [super init])) {
 		_tableView = [[UITableView alloc] initWithFrame:CGRectZero style:style];
 		_tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -78,13 +72,6 @@
 		_clearsSelectionOnViewWillAppear = YES;
 	}
 	return self;
-}
-
-
-#pragma mark - Configuration
-
-- (BOOL)useChangeAnimations {
-	return YES;
 }
 
 
@@ -103,8 +90,17 @@
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	// Subclasses should override this method
-	return nil;
+	// Subclasses should override this method. This is a placeholder implementation:
+
+	static NSString *const reuseIdentifier = @"SSManagedTableViewControllerCell";
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+	if (!cell) {
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+	}
+
+	[self configureCell:cell atIndexPath:indexPath];
+
+	return cell;
 }
 
 

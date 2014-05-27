@@ -13,10 +13,6 @@
     NSMutableArray *_sectionChanges;
 }
 
-#pragma mark - Accessors
-
-@synthesize collectionView = _collectionView;
-
 #pragma mark - NSObject
 
 - (void)dealloc {
@@ -49,16 +45,9 @@
 }
 
 
-#pragma mark - Public
-
-- (BOOL)useChangeAnimations {
-    return YES; // To keep consistent behavior with the current release of SSDataKit
-}
-
-
 #pragma mark - Initializer
 
-- (id)initWithLayout:(UICollectionViewLayout *)layout {
+- (instancetype)initWithLayout:(UICollectionViewLayout *)layout {
 	if ((self = [super init])) {
 		_collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
 		_collectionView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -160,6 +149,8 @@
 
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
+	[super controllerDidChangeContent:controller];
+	
     if (![self useChangeAnimations]) {
         [self.collectionView reloadData];
         return;

@@ -10,11 +10,9 @@
 
 @interface SSManagedCollectionViewController : SSManagedViewController <UICollectionViewDataSource, UICollectionViewDelegate>
 
-@property (nonatomic, strong, readonly) UICollectionView *collectionView;
+@property (nonatomic, readonly) UICollectionView *collectionView;
 
-- (id)initWithLayout:(UICollectionViewLayout *)layout;
+- (instancetype)initWithLayout:(UICollectionViewLayout *)layout;
 - (void)configureCell:(UICollectionViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
-
-- (BOOL)useChangeAnimations;
 
 @end

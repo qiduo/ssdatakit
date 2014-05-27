@@ -11,15 +11,9 @@
 
 @implementation SSManagedViewController
 
-@synthesize managedObject = _managedObject;
-@synthesize fetchedResultsController = _fetchedResultsController;
-@synthesize ignoreChange = _ignoreChange;
-@synthesize loading = _loading;
-@synthesize noContentView = _noContentView;
-@synthesize loadingView = _loadingView;
-
-
 #pragma mark - Accessors
+
+@synthesize fetchedResultsController = _fetchedResultsController;
 
 - (NSFetchedResultsController *)fetchedResultsController {
 	if (!_fetchedResultsController && [SSManagedObject hasMainQueueContext]) {
@@ -59,6 +53,10 @@
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
+
+	// Default animations on for subclasses that support this.
+	self.useChangeAnimations = YES;
+
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managedObjectContextWillReset:) name:kSSManagedObjectWillResetNotificationName object:nil];
 }
 
