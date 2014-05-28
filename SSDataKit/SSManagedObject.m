@@ -11,6 +11,7 @@
 NSString *const kSSManagedObjectWillResetNotificationName = @"SSManagedObjectWillResetNotification";
 
 static id __contextSaveObserver = nil;
+static NSPersistentStoreCoordinator *__persistentStoreCoordinator = nil;
 static NSManagedObjectContext *__privateQueueContext = nil;
 static NSManagedObjectContext *__mainQueueContext = nil;
 static NSManagedObjectModel *__managedObjectModel = nil;
@@ -85,30 +86,35 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 
 
 + (NSPersistentStoreCoordinator *)persistentStoreCoordinator {
-	static NSPersistentStoreCoordinator *persistentStoreCoordinator = nil;
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-		NSManagedObjectModel *model = [self managedObjectModel];
-		persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:model];
+    if (!__persistentStoreCoordinator) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            NSManagedObjectModel *model = [self managedObjectModel];
+            __persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:model];
+            
+            NSURL *url = [self persistentStoreURL];
+            NSError *error = nil;
+            NSDictionary *storeOptions = [self persistentStoreOptions];
+            [__persistentStoreCoordinator addPersistentStoreWithType:[self persistentStoreType] configuration:nil URL:url options:storeOptions error:&error];
+            
+            if (error) {
+                // Reset the persistent store
+                BOOL missingError = error.code == NSMigrationMissingSourceModelError || error.code == NSMigrationMissingMappingModelError;
+                if (__automaticallyResetsPersistentStore && missingError) {
+                    [SSManagedObject removeSQLiteFiles];
+                    [__persistentStoreCoordinator addPersistentStoreWithType:[self persistentStoreType] configuration:nil URL:url options:storeOptions error:&error];
+                } else {
+                    NSLog(@"[SSDataKit] Failed to add persistent store: %@ %@", error, error.userInfo);
+                }
+            }
+        });
 
-		NSURL *url = [self persistentStoreURL];
-		NSError *error = nil;
-		NSDictionary *storeOptions = [self persistentStoreOptions];
-		[persistentStoreCoordinator addPersistentStoreWithType:[self persistentStoreType] configuration:nil URL:url options:storeOptions error:&error];
+    }
+	return __persistentStoreCoordinator;
+}
 
-		if (error) {
-			// Reset the persistent store
-			BOOL missingError = error.code == NSMigrationMissingSourceModelError || error.code == NSMigrationMissingMappingModelError;
-			if (__automaticallyResetsPersistentStore && missingError) {
-				[SSManagedObject removeSQLiteFiles];
-				[persistentStoreCoordinator addPersistentStoreWithType:[self persistentStoreType] configuration:nil URL:url options:storeOptions error:&error];
-			} else {
-				NSLog(@"[SSDataKit] Failed to add persistent store: %@ %@", error, error.userInfo);
-			}
-		}
-	});
-
-	return persistentStoreCoordinator;
++ (void)setPersistentStoreCoordinator:(NSPersistentStoreCoordinator *)persistentStoreCoordinator {
+    __persistentStoreCoordinator = persistentStoreCoordinator;
 }
 
 

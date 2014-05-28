@@ -47,6 +47,7 @@ Changes saved here are automatically reflected in the `privateQueueContext`.
 #pragma mark - Configuring the Persistent Store
 
 + (NSPersistentStoreCoordinator *)persistentStoreCoordinator;
++ (void)setPersistentStoreCoordinator:(NSPersistentStoreCoordinator *)persistentStoreCoordinator;
 + (NSDictionary *)persistentStoreOptions;
 + (void)setPersistentStoreOptions:(NSDictionary *)options;
 + (NSManagedObjectModel *)managedObjectModel;
